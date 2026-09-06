@@ -1,0 +1,123 @@
+name: CI pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - feature/**
+
+  pull_request:
+    branches:
+      - main
+      - master
+      - feature/**
+    types:
+      - opened
+      - reopened
+      - edited
+
+jobs:
+
+  # -----------------------------
+  # Validate PR Title
+  # -----------------------------
+  pr-title:
+    name: Validate PR Title
+    if: >
+      github.event.action == 'opened' ||
+      github.event.action == 'reopened' ||
+      github.event.action == 'edited'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "PR Title: $PR_TITLE"
+
+          if [[ "$PR_TITLE" =~ ^(feat|fix|test|docs|refactor|chore|ci):\ .+ ]]; then
+            echo "✅ PR title is valid"
+          else
+            echo "❌ Invalid PR title"
+            echo ""
+            echo "Expected format:"
+            echo "feat: description"
+            echo "fix: description"
+            echo "test: description"
+            echo "docs: description"
+            echo "refactor: description"
+            echo "chore: description"
+            echo "ci: description"
+            exit 1
+          fi
+
+  # -----------------------------
+  # Validate Branch Name
+  # -----------------------------
+  branch-name:
+    name: Validate Branch Name
+    if: >
+      github.event.action == 'opened' ||
+      github.event.action == 'reopened' ||
+      github.event.action == 'edited'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check branch name
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
+        run: |
+          echo "Branch Name: $BRANCH_NAME"
+
+          if [[ "$BRANCH_NAME" =~ ^(feature|fix|test|docs|refactor|chore|ci)/.+ ]]; then
+            echo "✅ Branch name is valid"
+          else
+            echo "❌ Invalid branch name"
+            echo ""
+            echo "Expected format:"
+            echo "feature/<description>"
+            echo "fix/<description>"
+            echo "test/<description>"
+            echo "docs/<description>"
+            echo "refactor/<description>"
+            echo "chore/<description>"
+            echo "ci/<description>"
+            exit 1
+          fi
+
+  # -----------------------------
+  # CI Pipeline
+  # -----------------------------
+  test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Run tests
+        run: go test ./...
+
+      - name: Build application
+        run: go build -v ./...
+
+      - name: Summary
+        run: |
+          echo "All checks passed"

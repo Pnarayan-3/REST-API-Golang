@@ -12,7 +12,7 @@ type HTTPServer struct {
 	Addr string `yaml:"address" env-reqired:"true"`
 }
 
-//env-default:"production"
+// env-default:"production"
 
 type Config struct {
 	Env         string `yaml:"env" env:"ENV" env-required:"true"`
@@ -20,29 +20,30 @@ type Config struct {
 	HTTPServer  `yaml:"http_server"`
 }
 
-func MustLoad() *Config{
+func MustLoad() *Config {
 	var configPath string
 	configPath = os.Getenv("CONFIG_PATH")
 
-	if configPath==""{
-		flags:=flag.String("config","","path to the configuration file")
+	if configPath == "" {
+		flags := flag.String("config", "", "path to the configuration file")
 		flag.Parse()
 
-		configPath=*flags
+		configPath = *flags
 
-		if configPath==""{
+		if configPath == "" {
 			log.Fatal("Config path is not set")
 		}
 	}
-	if _,err:=os.Stat(configPath);os.IsNotExist(err){
-		log.Fatalf("config file does not exist: %s",configPath)
 
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		log.Fatalf("config file does not exist: %s", configPath)
 	}
+
 	var cfg Config
 
-	err:=cleanenv.ReadConfig(configPath,&cfg)
-	if err!=nil{
-		log.Fatalf("cannot read config file: %s",err.Error())
+	err := cleanenv.ReadConfig(configPath, &cfg)
+	if err != nil {
+		log.Fatalf("cannot read config file: %s", err.Error())
 	}
 
 	return &cfg

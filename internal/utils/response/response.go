@@ -36,16 +36,17 @@ func GeneralError(err error) Response {
 func ValidationError(errs validator.ValidationErrors) Response {
 	var errMsg []string
 
-	for _,err:=range errs{
-		switch err.ActualTag(){
+	for _, err := range errs {
+		switch err.ActualTag() {
 		case "required":
-			errMsg=append(errMsg, fmt.Sprintf("field %s is required",err.Field()))
+			errMsg = append(errMsg, fmt.Sprintf("field %s is required", err.Field()))
 		default:
-			errMsg=append(errMsg, fmt.Sprintf("field %s is invalid",err.Field()))
+			errMsg = append(errMsg, fmt.Sprintf("field %s is invalid", err.Field()))
 		}
 	}
+
 	return Response{
 		Status: StatusError,
-		Error: strings.Join(errMsg,","),
+		Error: strings.Join(errMsg, ","),
 	}
 }
