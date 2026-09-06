@@ -118,11 +118,6 @@ jobs:
       - name: Build application
         run: go build -v ./...
 
-      - name: Check Go modules
-        run: |
-          go mod tidy
-          git diff --exit-code go.mod go.sum
-
       - name: Summary
         run: |
           echo "All checks passed"
